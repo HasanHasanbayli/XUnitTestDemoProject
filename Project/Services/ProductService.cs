@@ -1,35 +1,57 @@
-using Project.Contexts;
+using System.Linq.Expressions;
+using Project.DataAccess.Interfaces;
 using Project.DTOs;
 using Project.Entities;
+using Project.Filter;
+using Project.Helpers;
+using Project.Results;
 using Project.Services.Interfaces;
+using Project.Wrappers;
+using IResult = Project.Results.IResult;
 
 namespace Project.Services;
 
 public class ProductService : IProductService
 {
-    private readonly ApplicationDbContext _applicationDbContext;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IProductDal _productDal;
+    private readonly IUriService _uriService;
 
-    public ProductService(ApplicationDbContext applicationDbContext)
+    public ProductService(IProductDal productDal, IUriService uriService, IHttpContextAccessor httpContextAccessor)
     {
-        _applicationDbContext = applicationDbContext;
+        _productDal = productDal;
+        _uriService = uriService;
+        _httpContextAccessor = httpContextAccessor;
     }
 
-    public Product Get(int productId)
+    public async Task<IDataResult<Product>> Get(int productId)
     {
-        var result = _applicationDbContext.Products!
-            .FirstOrDefault(x => x.Id == productId);
+        var result = await _productDal.Get(x => x.Id == productId);
 
-        return result ?? null!;
+        if (result == null!) return new ErrorDataResult<Product>(result!, 404, "Product not found");
+
+        return new SuccessDataResult<Product>(result, 200);
     }
 
-    public List<Product> GetAll()
+    public async Task<IDataResult<PagedResponse<List<Product>>>> GetPagedResponse(int pageNumber, int pageSize)
     {
-        var result = _applicationDbContext.Products!.ToList();
+        var route = _httpContextAccessor.HttpContext!.Request.Path.Value;
 
-        return !result.Any() ? null! : result;
+        var validFilter = new PaginationFilter(pageNumber, pageSize);
+
+        var products =
+            await _productDal.GetPagedResponse(validFilter.PageNumber, validFilter.PageSize);
+
+        var pagedResponse =
+            PaginationHelper.CreatePagedResponse(products.Item1, validFilter, products.totalCount, _uriService, route!);
+
+        if (pagedResponse.Data.Count == 0)
+            return new ErrorDataResult<PagedResponse<List<Product>>>(pagedResponse, 404, "Data Not Found");
+
+        return new SuccessDataResult<PagedResponse<List<Product>>>(pagedResponse, 200);
     }
 
-    public bool Add(ProductCreateDto productCreateDto)
+    public async Task<IDataResult<Product>> Add(ProductCreateDto productCreateDto)
     {
         Product newProduct = new()
         {
@@ -38,42 +60,36 @@ public class ProductService : IProductService
             Price = productCreateDto.Price
         };
 
-        _applicationDbContext.Products!.Add(newProduct);
+        var product = await _productDal.Add(newProduct);
 
-        _applicationDbContext.SaveChanges();
+        if (product == null!) return new ErrorDataResult<Product>(product!, 400, "Product add failed");
 
-        return true;
+        return new SuccessDataResult<Product>(product, 201);
     }
 
-    public bool Update(ProductUpdateDto productUpdateDto)
+    public async Task<IResult> Update(ProductUpdateDto productUpdateDto)
     {
-        var dbProduct = _applicationDbContext.Products!
-            .FirstOrDefault(x => x.Id == productUpdateDto.Id);
+        var dbProduct = await _productDal.Get(x => x.Id == productUpdateDto.Id);
 
-        if (dbProduct == null) return false;
+        if (dbProduct == null!) return new ErrorResult(404, "Product not found");
 
         dbProduct.Name = productUpdateDto.Name;
         dbProduct.Quantity = productUpdateDto.Quantity;
         dbProduct.Price = productUpdateDto.Price;
 
-        _applicationDbContext.Products!.Update(dbProduct);
+        await _productDal.Update(dbProduct);
 
-        _applicationDbContext.SaveChanges();
-
-        return false;
+        return new SuccessResult(201, "Product successfully added");
     }
-
-    public bool Delete(int productId)
+    
+    public async Task<IResult> Delete(int productId)
     {
-        var dbProduct = _applicationDbContext.Products!
-            .FirstOrDefault(x => x.Id == productId);
+        var dbProduct = await _productDal.Get(x => x.Id == productId);
 
-        if (dbProduct == null) return false;
+        if (dbProduct == null!) return new ErrorResult(404, "Product not found");
 
-        _applicationDbContext.Products!.Remove(dbProduct);
+        await _productDal.Delete(dbProduct);
 
-        _applicationDbContext.SaveChanges();
-
-        return true;
+        return new SuccessResult(200, "Product successfully deleted");
     }
 }

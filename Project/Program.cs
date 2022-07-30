@@ -1,5 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using Project.Contexts;
+using Project.DataAccess;
+using Project.DataAccess.Contexts;
+using Project.DataAccess.Interfaces;
+using Project.Extensions;
 using Project.Services;
 using Project.Services.Interfaces;
 
@@ -15,10 +18,16 @@ builder.Services.AddDbContext<ApplicationDbContext>(optionsBuilder =>
 });
 
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IProductDal, ProductDal>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddUri();
 
 var app = builder.Build();
 

@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Project.DataAccess.Contexts;
 using Project.DTOs;
+using Project.Filter;
 using Project.Services.Interfaces;
 
 namespace Project.Controllers;
@@ -8,69 +10,61 @@ namespace Project.Controllers;
 [Route("api/[controller]")]
 public class ProductController : ControllerBase
 {
+    private readonly ApplicationDbContext _applicationDbContext;
     private readonly IProductService _productService;
 
-    public ProductController(IProductService productService)
+    public ProductController(ApplicationDbContext applicationDbContext, IProductService productService)
     {
+        _applicationDbContext = applicationDbContext;
         _productService = productService;
     }
 
     [HttpGet]
-    public IActionResult Get()
+    public async Task<IActionResult> Get(int productId)
     {
-        var result = _productService.GetAll();
 
-        if (result == null!) return NotFound();
+        var result =await _productService.Get(productId);
+        
+        if (!result.Success) return NotFound(result);
 
         return Ok(result);
     }
 
-    [HttpGet("{productId:int}")]
-    public IActionResult Get(int productId)
+    [HttpGet("getPagedResponse")]
+    public async Task<IActionResult> GetPagedResponse([FromQuery] PaginationFilter filter)
     {
-        var product = _productService.Get(productId);
+        var result = await _productService.GetPagedResponse(filter.PageNumber, filter.PageSize);
 
-        if (product == null!) return NotFound();
-
-        return Ok(product);
+        return Ok(result);
     }
 
     [HttpPost]
-    public IActionResult Post(ProductCreateDto productCreateDto)
+    public async Task<IActionResult> Post(ProductCreateDto productCreateDto)
     {
-        var result = _productService.Add(productCreateDto);
+        var result = await _productService.Add(productCreateDto);
 
-        if (result)
-        {
-            return Ok();
-        }
+        if (!result.Success) return BadRequest(result);
 
-        return BadRequest();
+        return Ok(result);
     }
 
     [HttpPut]
-    public IActionResult Put(ProductUpdateDto productUpdateDto)
+    public async Task<IActionResult> Put(ProductUpdateDto productUpdateDto)
     {
-        var result = _productService.Update(productUpdateDto);
+        var result = await _productService.Update(productUpdateDto);
 
-        if (result)
-        {
-            return Ok();
-        }
+        if (!result.Success) return BadRequest(result);
 
-        return BadRequest();
+        return Ok(result);
     }
 
     [HttpDelete]
-    public IActionResult Delete(int productId)
+    public async Task<IActionResult> Delete(int productId)
     {
-        var result = _productService.Delete(productId);
+        var result = await _productService.Delete(productId);
+        
+        if (!result.Success) return BadRequest(result);
 
-        if (result)
-        {
-            return Ok();
-        }
-
-        return BadRequest();
+        return Ok(result);
     }
 }
