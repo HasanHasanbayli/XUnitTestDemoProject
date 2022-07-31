@@ -1,4 +1,3 @@
-using System.Linq.Expressions;
 using Project.DataAccess.Interfaces;
 using Project.DTOs;
 using Project.Entities;
@@ -31,6 +30,16 @@ public class ProductService : IProductService
         if (result == null!) return new ErrorDataResult<Product>(result!, 404, "Product not found");
 
         return new SuccessDataResult<Product>(result, 200);
+    }
+
+    public async Task<IDataResult<List<Product>>> GetAll()
+    {
+        var result = await _productDal.GetAll();
+
+        if (result.Count == 0)
+            return new ErrorDataResult<List<Product>>(result!, 404, "Product not found");
+
+        return new SuccessDataResult<List<Product>>(result, 200);
     }
 
     public async Task<IDataResult<PagedResponse<List<Product>>>> GetPagedResponse(int pageNumber, int pageSize)
@@ -81,7 +90,7 @@ public class ProductService : IProductService
 
         return new SuccessResult(201, "Product successfully added");
     }
-    
+
     public async Task<IResult> Delete(int productId)
     {
         var dbProduct = await _productDal.Get(x => x.Id == productId);

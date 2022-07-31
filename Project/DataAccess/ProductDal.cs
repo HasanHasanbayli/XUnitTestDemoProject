@@ -43,7 +43,7 @@ public class ProductDal : IProductDal
 
     public async Task<Product> Add(Product product)
     {
-        await _applicationDbContext.Set<Product>().AddAsync(product);
+        _applicationDbContext.Entry(product).State = EntityState.Added;
 
         await _applicationDbContext.SaveChangesAsync();
 
@@ -59,7 +59,7 @@ public class ProductDal : IProductDal
 
     public async Task Delete(Product product)
     {
-        _applicationDbContext.Set<Product>().Remove(product);
+        _applicationDbContext.Entry(product).State = EntityState.Deleted;
 
         await _applicationDbContext.SaveChangesAsync();
     }

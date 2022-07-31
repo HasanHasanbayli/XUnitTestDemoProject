@@ -10,6 +10,7 @@ namespace Project.Services.Interfaces;
 public interface IProductService
 {
     Task<IDataResult<Product>> Get(int productId);
+    Task<IDataResult<List<Product>>> GetAll();
 
     Task<IDataResult<Product>> Add(ProductCreateDto productCreateDto);
 

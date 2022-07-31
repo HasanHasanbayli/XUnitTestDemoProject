@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Project.DataAccess.Contexts;
 using Project.DTOs;
 using Project.Filter;
 using Project.Services.Interfaces;
@@ -10,21 +9,28 @@ namespace Project.Controllers;
 [Route("api/[controller]")]
 public class ProductController : ControllerBase
 {
-    private readonly ApplicationDbContext _applicationDbContext;
     private readonly IProductService _productService;
 
-    public ProductController(ApplicationDbContext applicationDbContext, IProductService productService)
+    public ProductController(IProductService productService)
     {
-        _applicationDbContext = applicationDbContext;
         _productService = productService;
     }
 
-    [HttpGet]
+    [HttpGet("{productId:int}")]
     public async Task<IActionResult> Get(int productId)
     {
+        var result = await _productService.Get(productId);
 
-        var result =await _productService.Get(productId);
-        
+        if (!result.Success) return NotFound(result);
+
+        return Ok(result);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var result = await _productService.GetAll();
+
         if (!result.Success) return NotFound(result);
 
         return Ok(result);
@@ -62,7 +68,7 @@ public class ProductController : ControllerBase
     public async Task<IActionResult> Delete(int productId)
     {
         var result = await _productService.Delete(productId);
-        
+
         if (!result.Success) return BadRequest(result);
 
         return Ok(result);
