@@ -5,7 +5,7 @@ namespace Project.Extensions;
 
 public static class UriExtension
 {
-    public static void AddUri(this IServiceCollection services)
+    public static void AddUriService(this IServiceCollection services)
     {
         services.AddSingleton<IUriService>(o =>
         {

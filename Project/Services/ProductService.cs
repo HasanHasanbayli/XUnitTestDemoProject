@@ -37,7 +37,7 @@ public class ProductService : IProductService
         var result = await _productDal.GetAll();
 
         if (result.Count == 0)
-            return new ErrorDataResult<List<Product>>(result!, 404, "Product not found");
+            return new ErrorDataResult<List<Product>>(result, 404, "Product not found");
 
         return new SuccessDataResult<List<Product>>(result, 200);
     }

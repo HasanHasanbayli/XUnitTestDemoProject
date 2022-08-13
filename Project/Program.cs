@@ -14,9 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 builder.Services.AddDbContext<ApplicationDbContext>(optionsBuilder =>
-{
-    optionsBuilder.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-});
+    optionsBuilder.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddHangfire(x =>
     x.UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -33,7 +31,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddUri();
+builder.Services.AddUriService();
 
 var app = builder.Build();
 

@@ -41,16 +41,24 @@ public class ProductController : ControllerBase
     {
         var result = await _productService.GetPagedResponse(filter.PageNumber, filter.PageSize);
 
+        if (!result.Success) return NotFound(result);
+
         return Ok(result);
     }
 
     [HttpPost]
     public async Task<IActionResult> Post(ProductCreateDto productCreateDto)
     {
+        // var fixture = new Fixture();
+
+        // for (var i = 0; i < 2000; i++)
+        // {
+        // var productCreateDto = fixture.Create<ProductCreateDto>();
+        // }
         var result = await _productService.Add(productCreateDto);
 
         if (!result.Success) return BadRequest(result);
-
+        
         return Ok(result);
     }
 

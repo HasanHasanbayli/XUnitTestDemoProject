@@ -2,14 +2,6 @@ namespace Project.Wrappers;
 
 public class PagedResponse<T>
 {
-    public PagedResponse(T data, int pageNumber, int pageSize, int totalRecords)
-    {
-        PageNumber = pageNumber;
-        PageSize = pageSize;
-        TotalRecords = totalRecords;
-        Data = data;
-    }
-
     public PagedResponse(T data, int pageNumber, int pageSize)
     {
         PageNumber = pageNumber;
